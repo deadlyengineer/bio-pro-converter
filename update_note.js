@@ -12169,127 +12169,15 @@ parser.on('end', function() {
     // Name - TBD
     newLine['Name'] = `#BP01${String(recordIndex).padStart(4, '0')}`
     // Command
-    newLine['Command'] = 'REPLACE'
-    // Send Receipt
-    newLine['Send Receipt'] = 'FALSE'
-    // Inventory Behaviour
-    newLine['Inventory Behaviour'] = 'bypass'
+    newLine['Command'] = 'UPDATE'
+    // Note
+    let note = ''
+    if (productIndex === 0 && record.shipping_company.slice(0, 6) == 'Note: ') note = record.shipping_company.slice(6) + ', '
+    note += `FoxyId: ${record.id}, `
+    note += `Ip Address: ${record.customer_ip}`
+    newLine['Note'] = `"${note}"`
     // Number
     newLine['Number'] = recordIndex
-    // Phone
-    newLine['Phone'] = `'${record.customer_phone}`
-    // Email
-    newLine['Email'] = record.customer_email
-    // Note
-    if (productIndex === 0 && record.shipping_company.slice(0, 6) == 'Note: ') newLine['Note'] = record.shipping_company.slice(6)
-    // Tags
-    const tags = []
-    if (record.is_subscription_new === '1' || record.is_subscription_renewal === '1') tags.push('Subscription')
-    if (record.is_subscription_new === '1') tags.push('Subscription First Order')
-    if (record.is_subscription_renewal === '1') tags.push('Subscrption Recurring Order')
-    newLine['Tags'] = `"${tags.join(',')}"`
-    // Tags Command
-    newLine['Tags Command'] = 'REPLACE'
-    // Cancelled At
-    // Cancel: Reason
-    // Cancel: Send Receipt
-    newLine['Cancel: Send Receipt'] = 'FALSE'
-    // Cancel: Refund
-    newLine['Cancel: Refund'] = 'FALSE'
-    // Processed At
-    newLine['Processed At'] = record.transaction_date + '-0800'
-    // Closed At
-    // Currency
-    newLine['Currency'] = record.int_curr_symbol
-    // Source
-    newLine['Source'] = record.source
-    // Source Identifier
-    newLine['Source Identifier'] = `${record.source}:${record.type}`
-    // Source URL
-    // Weight Total
-    if (productIndex === 0) newLine['Weight Total'] = +record.product_weight * 453.59
-    // Tax 1: Title
-    // Tax 1: Rate
-    // Tax 1: Price
-    // Tax 2: Title
-    // Tax 2: Rate
-    // Tax 2: Price
-    // Tax 3: Title
-    // Tax 3: Rate
-    // Tax 3: Price
-    // Tax: Included
-    newLine['Tax: Included'] = 'FALSE'
-    // Tax: Total
-    // Payment: Status
-    newLine['Payment: Status'] = 'paid'
-    // Additional Details
-    // Customer: ID
-    newLine['Customer: ID'] = CUSTOMER_EMAIL_ID_MAP_1[record.customer_email.toLowerCase()]
-    // Customer: Email
-    newLine['Customer: Email'] = record.customer_email
-    // Customer: Phone
-    newLine['Customer: Phone'] = `'${record.customer_phone}`
-    // Customer: First Name
-    newLine['Customer: First Name'] = record.customer_first_name
-    // Customer: Last Name
-    newLine['Customer: Last Name'] = `"${record.customer_last_name}"`
-    // Customer: Note
-    // Customer: State
-    newLine['Customer: State'] = 'enabled'
-    // Customer: Tags
-    // Customer: Accepts Marketing
-    newLine['Customer: Accepts Marketing'] = 'TRUE'
-    // Billing: First Name
-    newLine['Billing: First Name'] = record.shipping_first_name
-    // Billing: Last Name
-    newLine['Billing: Last Name'] = `"${record.shipping_last_name}"`
-    // Billing: Name
-    newLine['Billing: Name'] = `"${record.shipping_first_name} ${record.shipping_last_name}"`
-    // Billing: Company
-    newLine['Billing: Company'] = `"${record.customer_company}"`
-    // Billing: Phone
-    newLine['Billing: Phone'] = record.shipping_phone
-    // Billing: Address 1
-    newLine['Billing: Address 1'] = `"${record.shipping_address1}"`
-    // Billing: Address 2
-    newLine['Billing: Address 2'] = `"${record.shipping_address2}"`
-    // Billing: Zip
-    newLine['Billing: Zip'] = record.shipping_postal_code
-    // Billing: City
-    newLine['Billing: City'] = `"${record.shipping_city}"`
-    // Billing: Province - inferred from province code
-    // Billing: Province Code
-    newLine['Billing: Province Code'] = record.shipping_region
-    // Billing: Country
-    // Billing: Country Code
-    newLine['Billing: Country Code'] = record.shipping_country
-    // Shipping: First Name
-    newLine['Shipping: First Name'] = record.shipping_first_name
-    // Shipping: Last Name
-    newLine['Shipping: Last Name'] = `"${record.shipping_last_name}"`
-    // Shipping: Name
-    newLine['Shipping: Name'] = `"${record.shipping_first_name} ${record.shipping_last_name}"`
-    // Shipping: Company
-    newLine['Shipping: Company'] = `"${record.customer_company}"`
-    // Shipping: Phone
-    newLine['Shipping: Phone'] = record.shipping_phone
-    // Shipping: Address 1
-    newLine['Shipping: Address 1'] = `"${record.shipping_address1}"`
-    // Shipping: Address 2
-    newLine['Shipping: Address 2'] = `"${record.shipping_address2}"`
-    // Shipping: Zip
-    newLine['Shipping: Zip'] = record.shipping_postal_code
-    // Shipping: City
-    newLine['Shipping: City'] = `"${record.shipping_city}"`
-    // Shipping: Province
-    // Shipping: Province Code
-    newLine['Shipping: Province Code'] = record.shipping_region
-    // Shipping: Country
-    // Shipping: Country Code
-    newLine['Shipping: Country Code'] = record.shipping_country
-
-    // Line: Force Gift Card
-    newLine['Line: Force Gift Card'] = 'No'
   }
 
   // define write streams
@@ -12298,11 +12186,11 @@ parser.on('end', function() {
     no_customer: fs.createWriteStream(createCSV('no_customer')),
     no_format: fs.createWriteStream(createCSV('no_format')),
     result: fs.createWriteStream(createCSV('result')),
-    products: fs.createWriteStream(createCSV('products')),
+    note_update: fs.createWriteStream(createCSV('note_update')),
   }
 
   const headerRow = `${Object.keys(newLineTemplate).join(',')}\n`
-  writeStream.result.write(headerRow)
+  writeStream.note_update.write(headerRow)
   // const titlearray = []
 
   records.forEach((_record, recordIndex) => {
@@ -12312,17 +12200,6 @@ parser.on('end', function() {
      * @type {recordTemplate}
      */
     const record = _record
-
-    const {
-      products,
-    } = record
-
-    if (record.shipping_phone.length < 10) {
-      const missing = 10 - record.shipping_phone
-      for (let i = 0; i < missing; i++) {
-        record.shipping_phone = record.shipping_phone + '0'
-      }
-    }
 
     // No need to add to order
     if (record.is_subscription_cancel === '1') {
@@ -12342,209 +12219,15 @@ parser.on('end', function() {
       }
     }
 
-    let productIgnored = false
-    // Line Item
-    products.split(' | ').forEach((product, productIndex) => {
-      /**
-       * @type {newLineTemplate}
-       */
-      const newLine = JSON.parse(JSON.stringify(newLineTemplate))
-      populateHouseKeepingCells(record, newLine, recordIndex, productIndex)
-
-      if (!product.match(/(.+?) \((.+?) qty:(\d+)\)/) && !product.match(/(.+?) \( qty:(\d+)\)/)) {
-        console.log(`${record.id}-${product} is not in correct format - ignoring this lineItem`)
-        const line = `${record.id},${product}\n`
-        writeStream.no_format.write(line)
-        productIgnored = true
-        return
-      }
-
-      let productInShopify, sku, qty
-
-      if (product.match(/(.+?) \((.+?) qty:(\d+)\)/)) {
-        const [ _, title, sku, _qty ] = product.match(/(.+?) \((.+?) qty:(\d+)\)/)
-        
-        qty = _qty
-
-        let productTitle = ''
-        Object.keys(PRODUCT_DATA_ENUM).forEach(key => {
-          if (title.includes(key)) productTitle = key
-        })
-  
-        productInShopify = PRODUCT_DATA_ENUM[productTitle]
-      } else {
-        const [ _, title, _qty ] = product.match(/(.+?) \( qty:(\d+)\)/)
-        
-        qty = _qty
-
-        let productTitle = ''
-        Object.keys(PRODUCT_DATA_ENUM).forEach(key => {
-          if (title.includes(key)) productTitle = key
-        })
-  
-        productInShopify = PRODUCT_DATA_ENUM[productTitle]
-      }
-      
-      if (!productInShopify) {
-        console.log(`${record.id}-${product} is not in shopify - ignoring this lineItem`)
-        const line = `${record.id},${product}\n`
-        writeStream.no_format.write(line)
-        productIgnored = true
-        return
-      }
-
-      sku = productInShopify.sku
-
-      // Line: Type - for line items, check if we need Line: ID too
-      newLine['Line: Type'] = 'Line Item'
-      // Line: Command
-      newLine['Line: Command'] = 'DEFAULT'
-      // Line: Product ID
-      newLine['Line: Product ID'] = productInShopify.id
-      // Line: Product Handle
-      newLine['Line: Product Handle'] = productInShopify.handle
-      // Line: Title
-      newLine['Line: Title'] = productInShopify.title
-      // Line: Name - attr ignored, not need to set this
-      // Line: Variant ID - tbd, but the product doesnt have variant
-      newLine['Line: Variant ID'] = productInShopify.variantId
-      // Line: Variant Title - tbd
-      // Line: SKU - tbd
-      newLine['Line: SKU'] = sku
-      // Line: Quantity
-      newLine['Line: Quantity'] = +qty
-      // Line: Price
-      newLine['Line: Price'] = productInShopify.price * +qty
-      // Line: Discount - cannot be set - and will be sent to order discount
-      // Line: Grams - tbd
-      newLine['Line: Grams'] = 453.59 * +qty
-      // Line: Requires Shipping
-      newLine['Line: Requires Shipping'] = 'TRUE'
-      // Line: Vendor - tbd
-      newLine['Line: Vendor'] = 'BioProtein Technology'
-      // Line: Properties
-      // Line: Gift Card
-      newLine['Line: Gift Card'] = 'FALSE'
-      // Line: Force Gift Card
-      newLine['Line: Force Gift Card'] = 'No'
-      // Line: Taxable
-      // Line: Tax 1 Title
-      // Line: Tax 1 Rate
-      // Line: Tax 1 Price
-      // Line: Tax 2 Title
-      // Line: Tax 2 Rate
-      // Line: Tax 2 Price
-      // Line: Tax 3 Title
-      // Line: Tax 3 Rate
-      // Line: Tax 3 Price
-      // Line: Fulfillment Service - only for shipping line rows
-      // Line: Variant Barcode
-
-      // NOW_WRITE_TO_CSV and return
-      const row = `${Object.keys(newLineTemplate).map(key => newLine[key]).join(',')}\n`
-      writeStream.result.write(row)
-    })
-
-    if (productIgnored) return
-
-    // Refunds
-
-    // Transactions
     /**
      * @type {newLineTemplate}
      */
-    const newTxLine = JSON.parse(JSON.stringify(newLineTemplate))
-    populateHouseKeepingCells(record, newTxLine, recordIndex)
-
-    // Line: Type
-    newTxLine['Line: Type'] = 'Transaction'
-    // Line: Command
-    newTxLine['Line: Command'] = 'DEFAULT'
-    // Transaction: Kind
-    newTxLine['Transaction: Kind'] = 'sale'
-    // Transaction: Processed At
-    newTxLine['Transaction: Processed At'] = record.transaction_date + '-0800'
-    // Transaction: Amount
-    newTxLine['Transaction: Amount'] = record.order_total
-    // Transaction: Currency
-    newTxLine['Transaction: Currency'] = record.int_curr_symbol
-    // Transaction: Status - tbd, with record.status
-    newTxLine['Transaction: Status'] = 'success'
-    // Transaction: Gateway
-    newTxLine['Transaction: Gateway'] = record.gateway_type
-    // Transaction: Force Gateway
-    // Transaction: Test
-    newTxLine['Transaction: Test'] = 'FALSE'
-    // Transaction: Authorization
-    newTxLine['Transaction: Authorization'] = record.processor_response
-    // Transaction: Parent ID
+    const newNoteLine = JSON.parse(JSON.stringify(newLineTemplate))
+    populateHouseKeepingCells(record, newNoteLine, recordIndex)
 
     // NOW_WRITE_TO_CSV
-    const txRow = `${Object.keys(newLineTemplate).map(key => newTxLine[key]).join(',')}\n`
-    writeStream.result.write(txRow)
-
-    // Discount Line
-    /**
-     * @type {newLineTemplate}
-     */
-    const newDiscountLine = JSON.parse(JSON.stringify(newLineTemplate))
-    populateHouseKeepingCells(record, newDiscountLine, recordIndex)
-
-    // Line: Type
-    newDiscountLine['Line: Type'] = 'Discount'
-    // Line: Title
-    newDiscountLine['Line: Title'] = 'fixed_amount'
-    // Line: Name
-    newDiscountLine['Line: Name'] = record.coupons_used_codes
-    // Line: Discount
-    newDiscountLine['Line: Discount'] = record.coupon_subtotal
-    const discountRow = `${Object.keys(newLineTemplate).map(key => newDiscountLine[key]).join(',')}\n`
-    writeStream.result.write(discountRow)
-
-    // Fulfillment Line
-    /**
-     * @type {newLineTemplate}
-     */
-    const newFfLine = JSON.parse(JSON.stringify(newLineTemplate))
-    populateHouseKeepingCells(record, newFfLine, recordIndex)
-
-    // Line: Type
-    newFfLine['Line: Type'] = 'Fulfillment Line'
-    // Fulfillment: ID
-    newFfLine['Fulfillment: ID'] = recordIndex
-    // Fulfillment: Status
-    newFfLine['Fulfillment: Status'] = 'success'
-    // Fulfillment: Processed At
-    newFfLine['Fulfillment: Processed At'] = record.transaction_date + '-0800'
-    // Fulfillment: Tracking Company
-    // newFfLine['Fulfillment: Tracking Company'] = record.shipping_company
-    // Fulfillment: Location - will check first location
-    // Fulfillment: Shipment Status
-    newFfLine['Fulfillment: Shipment Status'] = 'delivered'
-    // Fulfillment: Tracking Number
-    // Fulfillment: Tracking URL
-    // Fulfillment: Send Receipt
-    newFfLine['Send Receipt'] = 'FALSE'
-    const ffRow = `${Object.keys(newLineTemplate).map(key => newFfLine[key]).join(',')}\n`
-    writeStream.result.write(ffRow)
-
-    // Shipping Line
-    /**
-     * @type {newLineTemplate}
-     */
-    const newShippingLine = JSON.parse(JSON.stringify(newLineTemplate))
-    populateHouseKeepingCells(record, newShippingLine, recordIndex)
-
-    // Line: Type
-    newShippingLine['Line: Type'] = 'Shipping Line'
-    // Line: Title
-    newShippingLine['Line: Title'] = `"${record.shipping_company}"` || 'Custom shipping'
-    // Line: Name
-    newShippingLine['Line: Name'] = `"${record.shipping_company}"` || 'Custom shipping'
-    // Line: Price
-    newShippingLine['Line: Price'] = record.shipping_subtotal
-    const shippingRow = `${Object.keys(newLineTemplate).map(key => newShippingLine[key]).join(',')}\n`
-    writeStream.result.write(shippingRow)
+    const noteRow = `${Object.keys(newLineTemplate).map(key => newNoteLine[key]).join(',')}\n`
+    writeStream.note_update.write(noteRow)
   })
 });
 
