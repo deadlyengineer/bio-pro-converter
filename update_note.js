@@ -12172,7 +12172,7 @@ parser.on('end', function() {
     newLine['Command'] = 'UPDATE'
     // Note
     let note = ''
-    if (productIndex === 0 && record.shipping_company.slice(0, 6) == 'Note: ') note = record.shipping_company.slice(6) + ', '
+    if (productIndex === 0 && record.shipping_company.includes('Note:')) note = record.shipping_company.slice(6) + ', '
     note += `FoxyId: ${record.id}, `
     note += `Ip Address: ${record.customer_ip}`
     newLine['Note'] = `"${note}"`
